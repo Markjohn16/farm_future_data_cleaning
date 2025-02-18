@@ -69,13 +69,13 @@ class DataCleaningAlgo {
                     let sumPrices = relevantPrices.reduce((sum, p) => sum + p, 0);
                     let sma = relevantPrices.length > 0 ? sumPrices / relevantPrices.length : item.price;
 
-                    let cleanedItem = new CleanedAdminData({
+                    let cleanedItem = {
                         commodity: item.commodity,
                         commodity_id: item._id.toString(), // Convert ObjectId to string
                         week: item.week,
                         original_price: item.price,
                         cleaned_price: parseFloat(sma.toFixed(2))
-                    });
+                    };
 
                     cleanedData.push(cleanedItem);
 
@@ -91,8 +91,15 @@ class DataCleaningAlgo {
                 });
             }
 
-            // Save cleaned data using the Mongoose model
-            await CleanedAdminData.insertMany(cleanedData); // Insert cleaned data in bulk
+            // Check if the cleaned data already exists in the database and replace it
+            for (let cleanedItem of cleanedData) {
+                // Use updateOne with upsert: true to replace the entire document if it exists
+                await CleanedAdminData.updateOne(
+                    { commodity: cleanedItem.commodity, commodity_id: cleanedItem.commodity_id, week: cleanedItem.week },
+                    { $set: cleanedItem }, // Replace the entire document with the new cleanedItem
+                    { upsert: true } // If the document doesn't exist, insert a new one
+                );
+            }
 
             // Store SMA logs in the database
             for (let log of smaLogs) {
