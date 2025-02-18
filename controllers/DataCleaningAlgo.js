@@ -1,6 +1,6 @@
 const { MongoClient } = require("mongodb");
 require("dotenv").config();
-const { cleanedAdminDataModel } = require("../models/cleanedAdminDataModel");
+const CleanedAdminData = require("../models/cleanedAdminDataModel"); // Correct import
 
 const mode = process.env.MODE;
 const DB_LOCAL = mode === "pro" ? process.env.DB_URL : process.env.DB_LOCAL;
@@ -69,7 +69,7 @@ class DataCleaningAlgo {
                     let sumPrices = relevantPrices.reduce((sum, p) => sum + p, 0);
                     let sma = relevantPrices.length > 0 ? sumPrices / relevantPrices.length : item.price;
 
-                    let cleanedItem = new cleanedAdminDataModel({
+                    let cleanedItem = new CleanedAdminData({
                         commodity: item.commodity,
                         commodity_id: item._id.toString(), // Convert ObjectId to string
                         week: item.week,
@@ -92,7 +92,7 @@ class DataCleaningAlgo {
             }
 
             // Save cleaned data using the Mongoose model
-            await cleanedAdminDataModel.insertMany(cleanedData); // Insert cleaned data in bulk
+            await CleanedAdminData.insertMany(cleanedData); // Insert cleaned data in bulk
 
             // Store SMA logs in the database
             for (let log of smaLogs) {
