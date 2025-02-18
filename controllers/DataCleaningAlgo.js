@@ -97,7 +97,13 @@ class DataCleaningAlgo {
             }));
 
             await cleanedCollection.bulkWrite(bulkOps);
-            await logsCollection.insertMany(smaLogs); // Store SMA logs in the database
+            for (let log of smaLogs) {
+                await logsCollection.updateOne(
+                    { commodity_id: log.commodity_id, week: log.week },
+                    { $set: log },
+                    { upsert: true }
+                );
+            } // Store SMA logs in the database
 
             return res.status(200).json({
                 message: "Data cleaning completed successfully.",
