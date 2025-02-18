@@ -1,5 +1,6 @@
 const { MongoClient } = require("mongodb");
 require("dotenv").config();
+const { cleanedAdminDataModel } = require("../models/cleanedAdminDataModel");
 
 const mode = process.env.MODE;
 const DB_LOCAL = mode === "pro" ? process.env.DB_URL : process.env.DB_LOCAL;
@@ -68,13 +69,15 @@ class DataCleaningAlgo {
                     let sumPrices = relevantPrices.reduce((sum, p) => sum + p, 0);
                     let sma = relevantPrices.length > 0 ? sumPrices / relevantPrices.length : item.price;
 
-                    cleanedData.push({
+                    let cleanedItem = new cleanedAdminDataModel({
                         commodity: item.commodity,
                         commodity_id: item._id.toString(), // Convert ObjectId to string
                         week: item.week,
                         original_price: item.price,
                         cleaned_price: parseFloat(sma.toFixed(2))
                     });
+
+                    cleanedData.push(cleanedItem);
 
                     let smaLog = {
                         commodity: item.commodity,
@@ -88,22 +91,17 @@ class DataCleaningAlgo {
                 });
             }
 
-            let bulkOps = cleanedData.map(item => ({
-                replaceOne: {
-                    filter: { commodity: item.commodity, week: item.week },
-                    replacement: item,
-                    upsert: true
-                }
-            }));
+            // Save cleaned data using the Mongoose model
+            await cleanedAdminDataModel.insertMany(cleanedData); // Insert cleaned data in bulk
 
-            await cleanedCollection.bulkWrite(bulkOps);
+            // Store SMA logs in the database
             for (let log of smaLogs) {
                 await logsCollection.updateOne(
                     { commodity_id: log.commodity_id, week: log.week },
                     { $set: log },
                     { upsert: true }
                 );
-            } // Store SMA logs in the database
+            }
 
             return res.status(200).json({
                 message: "Data cleaning completed successfully.",
