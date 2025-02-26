@@ -4,7 +4,7 @@ const CleanedAdminData = require("../models/cleanedAdminDataModel"); // Correct 
 const AdminSmaLogs = require("../models/smaLogsModel"); // Correct import for SMA logs model
 
 const mode = process.env.MODE;
-const DB_LOCAL = mode === "pro" ? process.env.DB_URL : process.env.DB_LOCAL;
+const DB_LOCAL = mode === "pro1" ? process.env.DB_URL : process.env.DB_LOCAL;
 
 class DataCleaningAlgo {
     data_cleaning = async (req, res) => {

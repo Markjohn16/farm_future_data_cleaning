@@ -3,7 +3,7 @@ require("dotenv").config();
 
 module.exports.dbConnect = async () => {
   try {
-    if(process.env.MODE === 'pro'){
+    if(process.env.MODE === 'pro1'){
       await mongoose.connect(process.env.DB_URL, {});
       console.log("production database connected ...");
    }else{

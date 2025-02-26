@@ -13,9 +13,19 @@ const { userInfo } = require("os");
 const server = http.createServer(app)
 
 // const cors = require("cors");
+
 app.use(
   cors({
-    origin: "*", // Accepts all origins
+    origin:
+      process.env.MODE === "pro"
+        ? [
+            process.env.client_trader_production_url,
+            process.env.client_admin_production_url,
+            "http://localhost:3000",
+            "http://localhost:3003",
+            "http://localhost:3009",
+          ]
+        : ["http://localhost:3000", "http://localhost:3003", "http://localhost:3009"],
     credentials: true,
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS",
     allowedHeaders: "Content-Type,Authorization",
