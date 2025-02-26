@@ -4,7 +4,7 @@ const CleanedAdminData = require("../models/cleanedAdminDataModel"); // Correct 
 const AdminSmaLogs = require("../models/smaLogsModel"); // Correct import for SMA logs model
 
 const mode = process.env.MODE;
-const DB_LOCAL = mode === "pro" ? process.env.DB_URL : process.env.DB_LOCAL;
+const DB_LOCAL = mode === "pro1" ? process.env.DB_URL : process.env.DB_LOCAL;
 
 class DataCleaningAlgo {
     data_cleaning = async (req, res) => {
@@ -48,7 +48,7 @@ class DataCleaningAlgo {
             const removeOutliers = (prices) => {
                 let sortedPrices = prices.map(p => p.price).sort((a, b) => a - b);
                 if (sortedPrices.length < 4) return prices;
-
+                
                 let q1 = sortedPrices[Math.floor(sortedPrices.length * 0.25)];
                 let q3 = sortedPrices[Math.floor(sortedPrices.length * 0.75)];
                 let iqr = q3 - q1;
@@ -91,9 +91,6 @@ class DataCleaningAlgo {
                 });
             }
 
-            // Delete all existing SMA logs before adding new ones
-            await AdminSmaLogs.deleteMany({});
-
             // Iterate over the cleaned data and check if it already exists
             for (let cleanedItem of cleanedData) {
                 // Check if the data already exists with the same commodity, commodity_id, and week
@@ -112,8 +109,17 @@ class DataCleaningAlgo {
 
             // Store SMA logs in the database using AdminSmaLogs model
             for (let log of smaLogs) {
-                // Insert each log as new log (since existing logs are already deleted)
-                await AdminSmaLogs.create(log);
+                // Check if the SMA log for the given commodity and week already exists
+                let existingLog = await AdminSmaLogs.findOne({
+                    commodity_id: log.commodity_id,
+                    week: log.week
+                });
+
+                if (!existingLog) {
+                    // If the log doesn't exist, insert it as new log
+                    await AdminSmaLogs.create(log);
+                }
+                // If the log exists, do nothing (skip insertion)
             }
 
             return res.status(200).json({
