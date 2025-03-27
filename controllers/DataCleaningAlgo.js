@@ -51,15 +51,24 @@ class DataCleaningAlgo {
 
             const removeOutliers = (prices) => {
                 let sortedPrices = prices.map(p => p.price).sort((a, b) => a - b);
-                if (sortedPrices.length < 4) return prices;
-
+                if (sortedPrices.length < 4) return prices; // Not enough data for outlier detection
+            
                 let q1 = sortedPrices[Math.floor(sortedPrices.length * 0.25)];
                 let q3 = sortedPrices[Math.floor(sortedPrices.length * 0.75)];
                 let iqr = q3 - q1;
+            
                 let lowerBound = q1 - 2.0 * iqr;
                 let upperBound = q3 + 2.0 * iqr;
-                return prices.filter(p => p.price >= lowerBound && p.price <= upperBound);
+            
+                return prices.filter(p => {
+                    return (
+                        (p.price >= lowerBound && p.price <= upperBound) || 
+                        Math.abs(p.price - q1) <= 150 || 
+                        Math.abs(p.price - q3) <= 150
+                    );
+                });
             };
+            
 
             const smaWindow = 17;
             let cleanedData = [];
