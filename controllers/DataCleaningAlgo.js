@@ -56,8 +56,8 @@ class DataCleaningAlgo {
                 let q1 = sortedPrices[Math.floor(sortedPrices.length * 0.25)];
                 let q3 = sortedPrices[Math.floor(sortedPrices.length * 0.75)];
                 let iqr = q3 - q1;
-                let lowerBound = q1 - 1.5 * iqr;
-                let upperBound = q3 + 1.5 * iqr;
+                let lowerBound = q1 - 2.0 * iqr;
+                let upperBound = q3 + 2.0 * iqr;
                 return prices.filter(p => p.price >= lowerBound && p.price <= upperBound);
             };
 
